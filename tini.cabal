@@ -1,0 +1,25 @@
+cabal-version:       >=1.10
+name:                tini
+version:             0.1.0.0
+synopsis:            Tiny INI file library with a minimal dependency footprint.
+-- description:
+-- bug-reports:
+license:             MIT
+license-file:        LICENSE
+author:              Anton Ekblad
+maintainer:          anton@ekblad.cc
+-- copyright:
+category:            Configuration
+build-type:          Simple
+
+library
+  exposed-modules:
+    Data.Tini
+  other-modules:
+    Data.Tini.Parser
+    Data.Tini.Ops
+    Data.Tini.Types
+  build-depends:
+    base >=4.10 && <5
+  default-language:
+    Haskell2010
