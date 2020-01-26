@@ -1,13 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 module Data.Tini.Types where
-import Data.Char (isSpace)
 import Data.String
+import Data.Tini.Utils (rtrim)
 
 -- | An ordered INI file.
 newtype Ini = Ini { unIni :: [Section] }
-
-rtrim :: String -> String
-rtrim = reverse . dropWhile isSpace . reverse
 
 instance Show Ini where
   show (Ini ini) = rtrim $ concat
@@ -39,7 +36,6 @@ valid (';':_)              = error "keys must not start with ';'"
 valid ('#':_)              = error "keys must not start with '#'"
 valid key | '=' `elem` key = error "keys must not contain '='"
           | otherwise      = key
-
 
 data KeyOrComment = Comment !String | KeyPart !String
 instance Ord KeyOrComment where

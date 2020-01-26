@@ -4,10 +4,10 @@ import Control.Applicative (Alternative, (<|>))
 import Control.Monad ((<=<))
 import Control.Monad.Fail (MonadFail, fail)
 import Data.Char (isSpace)
-import Data.Either (rights)
 import Data.Function (on)
 import Data.List (intercalate, sortBy, groupBy)
 import Data.Tini.Types
+import Data.Tini.Utils (trim, ltrim, rtrim)
 
 -- | Parses an INI file from the given string.
 --
@@ -26,7 +26,7 @@ import Data.Tini.Types
 --   key, and value.
 parseIni :: (Alternative m, MonadFail m) => String -> m Ini
 parseIni = fmap Ini . undupe "sections" <=< parseSections "" . filterWS . lines
-  where filterWS = filter (not . null) . map (dropWhile isSpace)
+  where filterWS = filter (not . null) . map ltrim
 
 undupe :: (Show k, Ord k, Eq k, MonadFail m) => String -> [(k, v)] -> m [(k, v)]
 undupe what ss =
@@ -73,7 +73,7 @@ parseSectionHead s =
 parseProp :: MonadFail m => String -> m Property
 parseProp s =
   case break (== '=') s of
-    (k@(_:_), '=':v) -> return (KeyPart (rtrim k), rtrim (dropWhile isSpace v))
+    (k@(_:_), '=':v) -> return (KeyPart (rtrim k), trim v)
     _                -> fail $ "expected 'key = value', but got '" <> s <> "'"
 
 parseComment :: MonadFail m => String -> m Property
