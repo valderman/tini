@@ -16,14 +16,13 @@ module Data.Tini.Configurable
     Configurable (..)
   , configure, serialize
     -- * Working with config files
-  , readConfigFile, readConfigFileWith
-  , writeConfigFile, updateConfigFile
+  , readConfigFile, readConfigFileWith, writeConfigFile, updateConfigFile
     -- * Re-exports
   , Generic
   ) where
 import Control.Exception (SomeException (..), try)
+import Control.Monad ((>=>))
 import Data.Proxy (Proxy (..))
-import Data.String (fromString)
 import GHC.Generics
 import System.IO
 import Data.Tini
@@ -37,9 +36,7 @@ readConfigFile = readConfigFileWith defaultConfig
 -- | Update the given configuration with the settings read from the given
 --   INI file.
 readConfigFileWith :: Configurable a => a -> FilePath -> IO a
-readConfigFileWith cfg file = do
-  ini <- readIniFile file
-  return $ updateConfig (maybe empty id ini) cfg
+readConfigFileWith c = fmap (flip updateConfig c . maybe empty id) . readIniFile
 
 -- | Update the given configuration file with the given config.
 --
@@ -50,13 +47,11 @@ readConfigFileWith cfg file = do
 --   the resulting file preserves both comments and keys
 --   which are not recognized by the config are not clobbered.
 updateConfigFile :: Configurable a => FilePath -> a -> IO ()
-updateConfigFile file cfg = do
-  old_file <- try $ withFile file ReadMode $ \h -> do
-    contents <- hGetContents h
-    return $! parseIni contents
-  case old_file :: Either SomeException (Maybe Ini) of
-    Right (Just ini) -> writeIniFile file (updateIni cfg ini)
-    _                -> writeIniFile file (serialize cfg)
+updateConfigFile f cfg = do
+  old <- try $ withFile f ReadMode $ hGetContents >=> (pure $!) . parseIni
+  case old :: Either SomeException (Maybe Ini) of
+    Right (Just ini) -> writeIniFile f (updateIni cfg ini)
+    _                -> writeIniFile f (serialize cfg)
 
 -- | Write the given configuration to the given file.
 --   If the file already exists, it will be overwritten.
@@ -84,19 +79,16 @@ class Configurable a where
   --   of the correct type.
   updateConfig :: Ini -> a -> a
   default updateConfig :: (Generic a, GConfigurable (Rep a)) => Ini -> a -> a
-  updateConfig ini = to . gUpdate (maybe "" fromString section) Nothing ini . from
-    where section = configSection (Proxy :: Proxy a)
+  updateConfig ini = to . gUpdate (maybe "" id sec) Nothing ini . from
+    where sec = configSection (Proxy :: Proxy a)
 
   -- | Update the given INI with the values from the given config.
   --   Implementations should preserve comments in the given INI (i.e. only
   --   update it using 'set').
-  --
-  --   See 'updateConfig' for more information about key mappings in the
-  --   default implementation.
   updateIni :: a -> Ini -> Ini
   default updateIni :: (Generic a, GConfigurable (Rep a)) => a -> Ini -> Ini
-  updateIni cfg = gUpdIni (maybe "" fromString section) Nothing (from cfg)
-    where section = configSection (Proxy :: Proxy a)
+  updateIni cfg = gUpdIni (maybe "" id sec) Nothing (from cfg)
+    where sec = configSection (Proxy :: Proxy a)
 
   -- | The section of an INI represented by this configuration.
   --
@@ -105,9 +97,7 @@ class Configurable a where
   --   That is, if the section head is given as
   --   @Just "PlayerInfo"@, a record called @playerName@ will be overwritten
   --   with the value at key @PlayerInfo.playerName@ instead.
-  --
-  --   Custom implementations are encouraged to respect this
-  configSection :: Proxy a -> Maybe String
+  configSection :: Proxy a -> Maybe SectionHead
   configSection _ = Nothing
 
   -- | The default values for this configuration.
@@ -119,10 +109,10 @@ class GConfigurable f where
   gUpdIni :: SectionHead -> Maybe Key -> f a -> Ini -> Ini
 
 instance (GConfigurable f, Selector c) => GConfigurable (M1 S c f) where
-  gUpdate s _ ini (M1 m) = M1 $ gUpdate s (Just (Key s (fromString sel))) ini m
-    where sel = selName (M1 undefined :: M1 s c f a)
-  gUpdIni s _ (M1 m) = gUpdIni s (Just (Key s (fromString sel))) m
-    where sel = selName (M1 undefined :: M1 s c f a)
+  gUpdate s _ ini (M1 m) = M1 $ gUpdate s (Just (Key s sel)) ini m
+    where sel = selName (undefined :: M1 s c f a)
+  gUpdIni s _ (M1 m) = gUpdIni s (Just (Key s sel)) m
+    where sel = selName (undefined :: M1 s c f a)
 
 instance {-# OVERLAPPABLE #-} GConfigurable f => GConfigurable (M1 i c f) where
   gUpdate s key ini (M1 m) = M1 $ gUpdate s key ini m

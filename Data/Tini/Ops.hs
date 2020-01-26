@@ -12,16 +12,6 @@ empty = Ini []
 
 -- | Returns the value at the given key, if it exists and is valid at
 --   the function's result type. All values are valid strings.
---
---   A valid key is either of the format @sect.prop@ or just @prop@.
---   The first key will match the property @prop@ in section @sect@,
---   and the second will match the property @prop@ outside of any section.
---   The @prop@ part must not begin with @;@ or @#@, or contain a @=@.
---
---   Using @TypeApplications@ to explicitly specify the return type
---   is usually a good idea:
---
--- > get @Int ini "person.age"
 get :: IniValue a => Ini -> Key -> Maybe a
 get (Ini ini) (Key s k) = lookup s ini >>= lookup (KeyPart k) >>= readValue
 
@@ -40,14 +30,8 @@ remove = modify (const Nothing)
 upd :: Eq k => (Maybe v -> Maybe v) -> k -> [(k, v)] -> [(k, v)]
 upd f k xs =
   case break ((== k) . fst) xs of
-    (prefix, (_, v):suffix) ->
-      case f (Just v) of
-        Just v' -> prefix ++ (k, v') : suffix
-        _       -> prefix ++ suffix
-    (_, []) -> 
-      case f Nothing of
-        Just v -> xs ++ [(k, v)]
-        _      -> xs
+    (pre, (_, v):suf) -> pre ++ maybe [] (\v' -> [(k, v')]) (f (Just v)) ++ suf
+    (_, [])           -> xs  ++ maybe [] (\v -> [(k, v)])   (f Nothing)
 
 -- | Modify the value at the given key in the given INI.
 --
@@ -57,19 +41,15 @@ upd f k xs =
 --   If the given function returns @Just new_value@, the given key will be
 --   created or overwritten with @new_value@. If it returns @Nothing@, the
 --   key will be deleted.
-modify :: (Maybe Value -> Maybe Value) -> Key -> Ini -> Ini
+modify :: (Maybe String -> Maybe String) -> Key -> Ini -> Ini
 modify f (Key s k) = Ini . upd (Just . upd f (KeyPart k) . maybe [] id) s . unIni
 
 -- | Convert the given INI to s list of @(key, value)@ pairs.
-toList :: Ini -> [(Key, Value)]
-toList (Ini sections) =
-  [ (Key sect name, value)
-  | (sect, props) <- sections
-  , (KeyPart name, value) <- props
-  ]
+toList :: Ini -> [(Key, String)]
+toList (Ini secs) = [(Key sec k, v) | (sec, ps) <- secs, (KeyPart k, v) <- ps]
 
 -- | Create an INI from the given list of @(key, value)@ pairs.
-fromList :: [(Key, Value)] -> Ini
+fromList :: [(Key, String)] -> Ini
 fromList = foldl' (flip $ uncurry set) empty
 
 -- | Merge the given INIs. Values from the second INI override values from

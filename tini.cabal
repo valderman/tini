@@ -16,6 +16,7 @@ description:
   * High-level generic configuration type library built on top, freeing you
     from ever having to think about how you interact with your INI files.
   * Certified bloat-free: only depends on @base@.
+  * Small and auditable: <500 lines of code, including comments.
 license:       MIT
 license-file:  LICENSE
 author:        Anton Ekblad

@@ -44,14 +44,14 @@ parseSections name lns =
     ([], [])        -> return []
     (section, [])   -> do
       props <- parseProps section
-      return [(SectionHead name, props)]
+      return [(SH name, props)]
     (section, s:ss) -> do
       name' <- parseSectionHead s
       props <- parseProps section
       sections <- parseSections name' ss
       if null section
         then return sections
-        else return ((SectionHead name, props):sections)
+        else return ((SH name, props):sections)
 
 parseProps :: (Alternative m, MonadFail m) => [String] -> m [Property]
 parseProps = undupe "keys" <=< mapM (\s -> parseComment s <|> parseProp s)

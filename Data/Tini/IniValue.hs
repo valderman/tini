@@ -25,6 +25,11 @@ instance IniValue Integer
 instance IniValue Float
 instance IniValue Double
 
+instance IniValue Char where
+  showValue c = [c]
+  readValue [c] = Just c
+  readValue _   = Nothing
+
 -- | Valid values for booleans (case-insensitive):
 --   true, false, yes, no, t, f, y, n, 1, 0, on, off.
 instance IniValue Bool where
@@ -51,8 +56,7 @@ instance IniValue a => IniValue [a] where
 -- | @Nothing@ is represented by the empty string, and any non-empty value
 --   of the correct type is @Just val@.
 instance IniValue a => IniValue (Maybe a) where
-  showValue (Just x) = showValue x
-  showValue Nothing  = ""
+  showValue = maybe "" showValue
   readValue "" = Just Nothing
   readValue x  = Just $ readValue x
 
@@ -60,21 +64,18 @@ instance IniValue a => IniValue (Maybe a) where
 --   on the left, @Right val@ if it's readable at the type on the right,
 --   and @Nothing@ if it's not readable as either.
 instance (IniValue a, IniValue b) => IniValue (Either a b) where
-  showValue (Left a)  = showValue a
-  showValue (Right b) = showValue b
+  showValue = either showValue showValue
   readValue s = (Left <$> readValue s) <|> (Right <$> readValue s)
 
 -- | Tuples follow the same rules as lists, but require a fixed length.
 instance (IniValue a, IniValue b) => IniValue (a, b) where
   showValue (a, b) = showValue [showValue a, showValue b]
-  readValue s =
-    case readValue s of
-      Just [a, b] -> (,) <$> readValue a <*> readValue b
-      _           -> Nothing
+  readValue s = do
+    [a, b] <- readValue s
+    (,) <$> readValue a <*> readValue b
 
 instance (IniValue a, IniValue b, IniValue c) => IniValue (a, b, c) where
   showValue (a, b, c) = showValue [showValue a, showValue b, showValue c]
-  readValue s =
-    case readValue s of
-      Just [a, b, c] -> (,,) <$> readValue a <*> readValue b <*> readValue c
-      _              -> Nothing
+  readValue s = do
+    Just [a, b, c] <- readValue s
+    (,,) <$> readValue a <*> readValue b <*> readValue c

@@ -18,15 +18,19 @@ instance Show Ini where
       showProp (Comment c, comment) = c <> comment
 
 -- | A key into an INI file.
-data Key = Key SectionHead String
+--
+--   A valid key is either of the format @"sect.prop"@ or just @"prop"@.
+--   The first key will match the property @prop@ in section @sect@,
+--   and the second will match the property @prop@ outside of any section.
+--   @prop@ must not begin with @;@ or @#@ or contain a @=@,
+--   and @sect@ must not contain @]@.
+data Key = Key !SectionHead !String
   deriving (Eq, Ord)
 instance IsString Key where
   fromString key =
     case break (== '.') key of
       (k, "")  -> Key "" (valid k)
       (s, _:k) -> Key (fromString s) (valid k)
-instance Read Key where
-  readsPrec _ s = [(fromString s, "")]
 instance Show Key where
   show (Key "" key)   = key
   show (Key sect key) = show sect <> "." <> key
@@ -48,11 +52,11 @@ instance Show KeyOrComment where
   show (Comment c) = c
   show (KeyPart k) = k
 
-newtype SectionHead = SectionHead String
+newtype SectionHead = SH String
   deriving (Eq, Ord, IsString)
 instance Show SectionHead where
-  show (SectionHead h) = h
+  show (SH h) | ']' `elem` h = error "section head must not contain ']'"
+              | otherwise    = h
 
 type Section = (SectionHead, [Property])
-type Property = (KeyOrComment, Value)
-type Value = String
+type Property = (KeyOrComment, String)

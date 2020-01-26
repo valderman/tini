@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, TypeApplications #-}
 module Data.Tini
-  ( IniValue (..), Ini, Key
-  , parseIni, parseIni'
+  ( IniValue (..), Ini, Key, SectionHead
+  , parseIni
   , module Data.Tini.Ops
   , readIniFile, writeIniFile
   ) where
@@ -11,12 +11,7 @@ import Data.Tini.IniValue
 import Data.Tini.Ops
 import Data.Tini.Parser (parseIni)
 import Data.Tini.Rename (rename)
-import Data.Tini.Types (Ini, Key)
-
--- | Try to parse the given string as an INI file,
---   returning the empty INI on failure.
-parseIni' :: String -> Ini
-parseIni' = maybe empty id . parseIni
+import Data.Tini.Types (Ini, Key, SectionHead)
 
 -- | Attempt to read the given file as an INI.
 --   Returns @Nothing@ if the file does not exist or can not be parsed as
@@ -24,8 +19,7 @@ parseIni' = maybe empty id . parseIni
 readIniFile :: FilePath -> IO (Maybe Ini)
 readIniFile file = do
   ini <- try $ withFile file ReadMode $ \h -> do
-    contents <- hGetContents h
-    return $! parseIni contents
+    (pure $!) . parseIni =<< hGetContents h
   case ini :: Either SomeException (Maybe Ini) of
     Right s -> return $! s
     _       -> return Nothing
@@ -38,16 +32,12 @@ writeIniFile path ini = do
     rename tmpfile path
   where
     (dir, file) = splitPath path
-
-dirSeparator :: Char
 #ifdef mingw32_HOST_OS
-dirSeparator = '\\'
+    dirSeparator = '\\'
 #else
-dirSeparator = '/'
+    dirSeparator = '/'
 #endif
-
-splitPath :: FilePath -> (FilePath, FilePath)
-splitPath path =
-  case break (== dirSeparator) (reverse path) of
-    (file, "")    -> (".", reverse file)
-    (file, _:dir) -> (reverse dir, reverse file)
+    splitPath p =
+      case break (== dirSeparator) (reverse p) of
+        (f, "")    -> (".", reverse f)
+        (f, _:d) -> (reverse d, reverse f)
