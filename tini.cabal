@@ -3,7 +3,7 @@ name:          tini
 version:       0.1.0.0
 synopsis:      Tiny INI file and generic configuration library with a minimal dependency footprint.
 description:
-  This library contains tools for working with INI-like configuration files.
+  This library provides tools for working with INI-like configuration files.
   Unlike most other INI libraries, it is not blazing fast or built with
   cutting-edge libraries. Instead, it assumes that you are using INI-like
   configuration files because you want something simple and lightweight.

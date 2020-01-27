@@ -80,7 +80,7 @@ toIni = flip updateIni empty
 
 -- | Invariants on the 'ExcludedFields' and 'IniSection' types of
 --   'Configurable': all names appearing in @ExcludedFields@ must be names
---   of fields of @a@, @IniSection@ must be a proper string.
+--   of fields of @a@, and @IniSection@ must be known at compile time.
 type ConfigInvariants a =
   ( FieldsOf a (ExcludedFields a)
   , SymList (ExcludedFields a)
@@ -135,7 +135,8 @@ type family FailUnless (p :: Nat) (f :: Symbol) (a :: *) :: Constraint where
   FailUnless 1 f a = ()
   FailUnless n f a = TypeError
     ( 'Text "Type '" ':<>: 'ShowType a ':<>: 'Text "' has no field named "
-      ':<>: 'ShowType f ':<>: 'Text ", in declaration of 'ExcludedFields'."
+      ':<>: 'ShowType f ':<>: 'Text ", in declaration of 'ExcludedFields "
+      ':<>: 'ShowType a ':<>: 'Text "'."
     )
 
 type family FieldsOf a (xs :: [Symbol]) :: Constraint where
@@ -175,8 +176,8 @@ instance IniValue a => GConfigurable (K1 i a) where
   gUpdate _ _ (Just key) ini k@(K1 _) = maybe k K1 (get ini key)
   gUpdate _ _ _ _ k                   = k
 
-  gUpdIni _ _ (Just key) (K1 x) = set key x
-  gUpdIni _ _ _ _               = id
+  gUpdIni _ _ (Just key) (K1 x) ini = set ini key x
+  gUpdIni _ _ _ _               ini = ini
 
 instance (GConfigurable a, GConfigurable b) => GConfigurable (a :*: b) where
   gUpdate e s _ ini (a:*:b) = gUpdate e s Nothing ini a :*: gUpdate e s Nothing ini b

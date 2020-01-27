@@ -3,7 +3,8 @@ module Data.Tini.Types where
 import Data.String
 import Data.Tini.Utils (rtrim)
 
--- | An ordered INI file.
+-- | An ordered, comment-preserving representation of an INI file.
+--   Use 'show' to serialize an @Ini@ to a @String@.
 newtype Ini = Ini { unIni :: [Section] }
 
 instance Show Ini where
@@ -23,7 +24,7 @@ instance Show Ini where
 --   The first key will match the property @prop@ in section @sect@,
 --   and the second will match the property @prop@ outside of any section.
 --   @prop@ must not begin with @;@ or @#@ or contain a @=@,
---   and @sect@ must not contain @]@.
+--   and @sect@ must not contain @]@. Both parts are case-sensitive.
 data Key = Key !SectionHead !String
   deriving (Eq, Ord)
 instance IsString Key where

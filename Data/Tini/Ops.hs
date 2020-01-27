@@ -11,7 +11,9 @@ empty :: Ini
 empty = Ini []
 
 -- | Returns the value at the given key, if it exists and is valid at
---   the function's result type. All values are valid strings.
+--   the function's result type.
+--   See 'IniValue' for more information regarding how Haskell values are
+--   encoded in INI files.
 get :: IniValue a => Ini -> Key -> Maybe a
 get (Ini ini) (Key s k) = lookup s ini >>= lookup (KeyPart k) >>= readValue
 
@@ -20,8 +22,8 @@ get (Ini ini) (Key s k) = lookup s ini >>= lookup (KeyPart k) >>= readValue
 --
 --   New sections are added at the end of the given INI, and new properties
 --   are added at the end of their respective sections.
-set :: IniValue a => Key -> a -> Ini -> Ini
-set key val = modify (const (Just (showValue val))) key
+set :: IniValue a => Ini -> Key -> a -> Ini
+set ini key val = modify (const (Just (showValue val))) key ini
 
 -- | Removes the given key from the given INI.
 remove :: Key -> Ini -> Ini
@@ -50,10 +52,10 @@ toList (Ini secs) = [(Key sec k, v) | (sec, ps) <- secs, (KeyPart k, v) <- ps]
 
 -- | Create an INI from the given list of @(key, value)@ pairs.
 fromList :: [(Key, String)] -> Ini
-fromList = foldl' (flip $ uncurry set) empty
+fromList = foldl' (uncurry . set) empty
 
 -- | Merge the given INIs. Values from the second INI override values from
 --   the first in cases where a key exists in both.
 --   Comments from the second INI are discarded.
 merge :: Ini -> Ini -> Ini
-merge l = foldl' (flip $ uncurry set) l . toList
+merge l = foldl' (uncurry . set) l . toList

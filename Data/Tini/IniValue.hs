@@ -7,7 +7,8 @@ import Data.List (intercalate)
 import Data.Tini.Utils (trim, splitOn)
 
 -- | Valid types for values of INI properties.
---   Default implementation uses 'Show'/'Read'.
+--   Default implementation uses 'show' and 'reads'
+--   for @showValue@ and @readValue@ respectively.
 class IniValue a where
   showValue :: a -> String
   default showValue :: Show a => a -> String
@@ -48,13 +49,13 @@ instance {-# OVERLAPPING #-} IniValue String where
   readValue = Just
 
 -- | Lists are zero or more valid values, separated by commas.
---   To include a comma in a string within a list, escape it using @\@.
+--   To include a comma in a string within a list, escape it using @\\,@.
 instance IniValue a => IniValue [a] where
   showValue = intercalate "," . map showValue
   readValue = sequence . map readValue . map trim . splitOn ','
 
--- | @Nothing@ is represented by the empty string, and any non-empty value
---   of the correct type is @Just val@.
+-- | @Nothing@ is encoded as the empty string, and any non-empty value
+--   of the correct type encodes @Just val@.
 instance IniValue a => IniValue (Maybe a) where
   showValue = maybe "" showValue
   readValue "" = Just Nothing
@@ -67,7 +68,7 @@ instance (IniValue a, IniValue b) => IniValue (Either a b) where
   showValue = either showValue showValue
   readValue s = (Left <$> readValue s) <|> (Right <$> readValue s)
 
--- | Tuples follow the same rules as lists, but require a fixed length.
+-- | Tuples follow the same rules as lists, but must be of the correct length.
 instance (IniValue a, IniValue b) => IniValue (a, b) where
   showValue (a, b) = showValue [showValue a, showValue b]
   readValue s = do

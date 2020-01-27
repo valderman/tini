@@ -1,9 +1,15 @@
 {-# LANGUAGE CPP, TypeApplications #-}
 module Data.Tini
-  ( IniValue (..), Ini, Key
+  ( -- * Parsing INI files
+    Ini
   , parseIni
+    -- * Reading and modifying properties
+  , Key
   , module Data.Tini.Ops
+    -- * Working with files
   , readIniFile, writeIniFile
+    -- * Adding new types of INI properties
+  , IniValue (..)
   ) where
 import Control.Exception (SomeException, try)
 import System.IO
