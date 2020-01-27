@@ -1,7 +1,7 @@
 cabal-version: >=1.10
 name:          tini
 version:       0.1.0.0
-synopsis:      Tiny INI configuration library with a minimal dependency footprint.
+synopsis:      Tiny INI file and generic configuration library with a minimal dependency footprint.
 description:
   This library contains tools for working with INI-like configuration files.
   Unlike most other INI libraries, it is not blazing fast or built with
@@ -16,7 +16,7 @@ description:
   * High-level generic configuration type library built on top, freeing you
     from ever having to think about how you interact with your INI files.
   * Certified bloat-free: only depends on @base@.
-  * Small and auditable: <500 lines of code, including comments.
+  * Small and auditable: <450 lines of code excluding documentation.
 license:       MIT
 license-file:  LICENSE
 author:        Anton Ekblad
