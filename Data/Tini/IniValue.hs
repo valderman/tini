@@ -3,7 +3,9 @@
 module Data.Tini.IniValue where
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
+import Data.Int
 import Data.List (intercalate)
+import Data.Word
 import Data.Tini.Utils (trim, splitOn)
 
 -- | Valid types for values of INI properties.
@@ -22,6 +24,15 @@ class IniValue a where
       _         -> Nothing
 
 instance IniValue Int
+instance IniValue Int8
+instance IniValue Int16
+instance IniValue Int32
+instance IniValue Int64
+instance IniValue Word
+instance IniValue Word8
+instance IniValue Word16
+instance IniValue Word32
+instance IniValue Word64
 instance IniValue Integer
 instance IniValue Float
 instance IniValue Double
