@@ -178,6 +178,12 @@ hostname =
 bandwidthLimit = 100
 ```
 
+Note that instead of using `readIniFile`, we could have used `readConfigFile`
+twice: once to read the user configuration, and once to read the network
+configuration.
+In each call, values irrelevant to the type of configuration being read
+are ignored.
+
 
 ### Excluding fields
 It may be that we have some values in our configuration that we want to be
