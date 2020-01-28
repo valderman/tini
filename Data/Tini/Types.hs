@@ -25,7 +25,7 @@ instance Show Ini where
 --   and the second will match the property @prop@ outside of any section.
 --   @prop@ must not begin with @;@ or @#@ or contain a @=@,
 --   and @sect@ must not contain @]@. Both parts are case-sensitive.
-data Key = Key !SectionHead !String
+data Key = Key !SectionName !String
   deriving (Eq, Ord)
 instance IsString Key where
   fromString key =
@@ -53,11 +53,13 @@ instance Show KeyOrComment where
   show (Comment c) = c
   show (KeyPart k) = k
 
-newtype SectionHead = SH String
+-- | The name of an INI section.
+--   Must not contain the character @']'@.
+newtype SectionName = SN String
   deriving (Eq, Ord, IsString)
-instance Show SectionHead where
-  show (SH h) | ']' `elem` h = error "section head must not contain ']'"
+instance Show SectionName where
+  show (SN h) | ']' `elem` h = error "section head must not contain ']'"
               | otherwise    = h
 
-type Section = (SectionHead, [Property])
+type Section = (SectionName, [Property])
 type Property = (KeyOrComment, String)

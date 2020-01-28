@@ -19,7 +19,7 @@
 --   For more advanced usage, see <https://github.com/valderman/tini>.
 module Data.Tini.Configurable
   ( -- * Basic configuration
-    Configurable (defaultConfig)
+    Configurable (defaultConfig, sectionName)
   , fromIni, toIni
     -- * Working with config files
   , readConfigFile, readConfigFileWith, writeConfigFile, updateConfigFile
@@ -78,13 +78,11 @@ fromIni = flip updateConfig defaultConfig
 toIni :: Configurable a => a -> Ini
 toIni = flip updateIni empty
 
--- | Invariants on the 'ExcludedFields' and 'IniSection' types of
---   'Configurable': all names appearing in @ExcludedFields@ must be names
---   of fields of @a@, and @IniSection@ must be known at compile time.
+-- | Invariants on 'ExcludedFields':
+--   all names appearing in @ExcludedFields@ must be names of fields of @a@.
 type ConfigInvariants a =
   ( FieldsOf a (ExcludedFields a)
   , SymList (ExcludedFields a)
-  , KnownSymbol (IniSection a)
   )
 
 -- | Any type which can be stored and loaded as an INI configuration file.
@@ -100,15 +98,15 @@ class ConfigInvariants a => Configurable a where
   --   of the correct type.
   updateConfig :: Ini -> a -> a
   default updateConfig :: (Generic a, GConfigurable (Rep a)) => Ini -> a -> a
-  updateConfig ini =
-    to . gUpdate (symList @(ExcludedFields a)) (section @a) Nothing ini . from
+  updateConfig i =
+    to . gUpdate (lower @(ExcludedFields a)) (sectionName @a) Nothing i . from
 
   -- | Update the given INI with the values from the given config.
   --   Implementations should preserve comments in the given INI (i.e. only
   --   update it using 'set').
   updateIni :: a -> Ini -> Ini
   default updateIni :: (Generic a, GConfigurable (Rep a)) => a -> Ini -> Ini
-  updateIni cfg = gUpdIni (symList @(ExcludedFields a)) (section @a) Nothing (from cfg)
+  updateIni = gUpdIni (lower @(ExcludedFields a)) (sectionName @a) Nothing . from
 
   -- | Fields of the configuration type which should not be
   --   read from or written to an INI.
@@ -118,8 +116,8 @@ class ConfigInvariants a => Configurable a where
 
   -- | The section of an INI under which to place settings from
   --   this configuration. The default is no section.
-  type IniSection a :: Symbol
-  type IniSection a = ""
+  sectionName :: SectionName
+  sectionName = ""
 
   -- | The default values for this configuration.
   defaultConfig :: a
@@ -144,19 +142,16 @@ type family FieldsOf a (xs :: [Symbol]) :: Constraint where
   FieldsOf a '[]       = ()
 
 class GConfigurable f where
-  gUpdate :: [String] -> SectionHead -> Maybe Key -> Ini -> f a -> f a
-  gUpdIni :: [String] -> SectionHead -> Maybe Key -> f a -> Ini -> Ini
-
-section :: forall a. KnownSymbol (IniSection a) => SectionHead
-section = SH (symbolVal (Proxy :: Proxy (IniSection a)))
+  gUpdate :: [String] -> SectionName -> Maybe Key -> Ini -> f a -> f a
+  gUpdIni :: [String] -> SectionName -> Maybe Key -> f a -> Ini -> Ini
 
 class SymList (a :: [Symbol]) where
-  symList :: [String]
+  lower :: [String]
 
 instance (KnownSymbol x, SymList xs) => SymList (x ': xs) where
-  symList = symbolVal (Proxy @x) : symList @xs
+  lower = symbolVal (Proxy @x) : lower @xs
 instance SymList '[] where
-  symList = []
+  lower = []
 
 instance (GConfigurable f, Selector c) => GConfigurable (M1 S c f) where
   gUpdate exclude s _ ini (M1 m)

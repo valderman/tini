@@ -4,7 +4,7 @@ module Data.Tini
     Ini
   , parseIni
     -- * Reading and modifying properties
-  , Key
+  , Key, SectionName
   , module Data.Tini.Ops
     -- * Working with files
   , readIniFile, writeIniFile
@@ -17,7 +17,7 @@ import Data.Tini.IniValue
 import Data.Tini.Ops
 import Data.Tini.Parser (parseIni)
 import Data.Tini.Rename (rename)
-import Data.Tini.Types (Ini, Key)
+import Data.Tini.Types (Ini, Key, SectionName)
 
 -- | Attempt to read the given file as an INI.
 --   Returns @Nothing@ if the file does not exist or can not be parsed as
