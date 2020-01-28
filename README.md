@@ -47,6 +47,7 @@ age = 110
 
 **example1.hs**:
 ```haskell
+{-# LANGUAGE OverloadedStrings #-}
 import Data.Tini
 
 main = do
@@ -54,7 +55,7 @@ main = do
   let Just user = get ini "User.name"
       Just age = get ini "User.age"
   putStrLn ("Hello " ++ user ++ ", you just got one year older!")
-  writeIniFile "config.ini" (set ini "User.age" (age+1))
+  writeIniFile "config.ini" (set ini "User.age" (age+1 :: Int))
 ```
 
 **Output**:
@@ -128,7 +129,7 @@ age = 110
 
 **example3.hs**:
 ```haskell
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 import Data.Tini (readIniFile)
 import Data.Tini.Configurable
 
@@ -147,21 +148,21 @@ instance Configurable User where
     { name = "Default User"
     , age = 0
     }
-  iniSection = "User"
+  sectionName = "User"
 
 instance Configurable NetworkConfig where
   defaultConfig = NetworkConfig
     { hostname = ""
     , bandwidthLimit = Nothing
     }
-  iniSection = "Network"
+  sectionName = "Network"
 
 main = do
-  ini <- readIniFile "config.ini"
+  Just ini <- readIniFile "config.ini"
   let user = fromIni ini
       network = fromIni ini
   putStrLn ("Hello " ++ name user ++ ", you just got one year older!")
-  updateConfigFile "config.ini" (user { age = age conf + 1 })
+  updateConfigFile "config.ini" (user { age = age user + 1 })
   putStrLn ("You also just got bandwidth limited!")
   updateConfigFile "config.ini" (network { bandwidthLimit = Just 100 })
 ```
@@ -213,6 +214,7 @@ instance Configurable Config where
     , userAge = 0
     , configLocation = ""
     }
+  type ExcludedFields Config = '["configLocation"]
 
 myConfig = Config
   { userName = "My Default User"
@@ -221,9 +223,9 @@ myConfig = Config
   }
 
 main = do
-  ini <- readConfigFileWith myConfig (configLocation myConfig))
-  putStrLn ("Hello " ++ name user ++ ", you just got one year older!")
-  updateConfigFile "config.ini" (user { age = age conf + 1 })
+  conf <- readConfigFileWith myConfig (configLocation myConfig)
+  putStrLn ("Hello " ++ userName conf ++ ", you just got one year older!")
+  updateConfigFile "config.ini" (conf { userAge = userAge conf + 1 })
 ```
 
 **config.ini, post-update**:
