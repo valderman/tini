@@ -15,7 +15,7 @@ Tini provides the following features:
 * Automatic de/serialization of lists, optional values and base types.
 * High-level generic configuration type library built on top, freeing you
   from ever having to think about how you interact with your INI files.
-* Certified bloat-free: only depends on @base@.
+* Certified bloat-free: only depends on `base`.
 * Small and auditable: <450 lines of code excluding documentation.
 
 
