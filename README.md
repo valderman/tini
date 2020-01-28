@@ -26,7 +26,7 @@ light touch will do the trick.
 
 I tried to find an INI parsing library which wouldn't triple the number of
 dependencies in a small, security-critical project I was working on, so I
-wrote my own. This library depends only on @base@, and uses simple string
+wrote my own. This library depends only on `base`, and uses simple string
 splitting to parse INI files.
 This approach may be significantly slower and less "proper" than using a
 state of the art parsing combinator library, but it's also a lot simpler.
