@@ -193,7 +193,7 @@ One example might be the location of the configuration file itself.
 
 We can accomplish this by adding the field representing the location of
 the configuration file to the `ExcludedFields` associated type.
-As `ExcludedFiles` is a type-level list, we can check at compile-time that
+As `ExcludedFields` is a type-level list, we can check at compile-time that
 all fields listed therein are actually fields of our configuration type.
 Adding any other field to that list results in a type error.
 
