@@ -22,6 +22,7 @@ import Data.Tini.Utils (trim, ltrim, rtrim)
 --   Note that a valid INI file must not contain duplicate section headers,
 --   and keys must be unique within their section.
 --   Section headers and keys are case-sensitive.
+--   Values must be contained on a single line.
 --   Whitespace is ignored at the start and end of each line, section header,
 --   key, and value.
 parseIni :: (Alternative m, MonadFail m) => String -> m Ini
@@ -73,7 +74,7 @@ parseSectionHead s =
 parseProp :: MonadFail m => String -> m Property
 parseProp s =
   case break (== '=') s of
-    (k@(_:_), '=':v) -> return (KeyPart (rtrim k), trim v)
+    (k@(_:_), '=':v) -> return (KeyPart (trim k), trim v)
     _                -> fail $ "expected 'key = value', but got '" <> s <> "'"
 
 parseComment :: MonadFail m => String -> m Property

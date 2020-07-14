@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP, TypeApplications #-}
 module Data.Tini
-  ( -- * Parsing INI files
+  ( -- * De/serializing INI files
     Ini
-  , parseIni
+  , parseIni, showIni
     -- * Reading and modifying properties
   , Key, SectionName
   , module Data.Tini.Ops
@@ -17,7 +17,7 @@ import Data.Tini.IniValue
 import Data.Tini.Ops
 import Data.Tini.Parser (parseIni)
 import Data.Tini.Rename (rename)
-import Data.Tini.Types (Ini, Key, SectionName)
+import Data.Tini.Types (Ini, Key, SectionName, showIni)
 
 -- | Attempt to read the given file as an INI.
 --   Returns @Nothing@ if the file does not exist or can not be parsed as

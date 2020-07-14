@@ -48,3 +48,13 @@ library
     Haskell2010
   ghc-options:
     -Wall
+
+test-suite tini-test
+  type: exitcode-stdio-1.0
+  main-is: run-tests.hs
+  other-modules: Generators
+  hs-source-dirs: test
+  build-depends:
+    base >=4.10 && <5,
+    QuickCheck >=2.14 && <3,
+    tini

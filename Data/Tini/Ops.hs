@@ -5,6 +5,7 @@ module Data.Tini.Ops
 import Data.List (foldl')
 import Data.Tini.IniValue
 import Data.Tini.Types
+import Data.Tini.Utils (trim)
 
 -- | An INI with no sections or properties.
 empty :: Ini
@@ -44,7 +45,8 @@ upd f k xs =
 --   created or overwritten with @new_value@. If it returns @Nothing@, the
 --   key will be deleted.
 modify :: (Maybe String -> Maybe String) -> Key -> Ini -> Ini
-modify f (Key s k) = Ini . upd (Just . upd f (KeyPart k) . maybe [] id) s . unIni
+modify f (Key s k) = Ini . upd (Just . upd (fmap clean . f) (KeyPart k) . maybe [] id) s . unIni
+  where clean = trim . filter (/= '\n')
 
 -- | Convert the given INI to s list of @(key, value)@ pairs.
 toList :: Ini -> [(Key, String)]

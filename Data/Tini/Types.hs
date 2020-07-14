@@ -1,22 +1,29 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 module Data.Tini.Types where
+import Data.Char (isSpace)
+import Data.List
 import Data.String
-import Data.Tini.Utils (rtrim)
+import Data.Tini.Utils (ltrim, rtrim, trim)
 
 -- | An ordered, comment-preserving representation of an INI file.
---   Use 'show' to serialize an @Ini@ to a @String@.
 newtype Ini = Ini { unIni :: [Section] }
+  deriving (Show, Read)
 
-instance Show Ini where
-  show (Ini ini) = rtrim $ concat
-      [ maybe "" ((<> "\n") . unlines . map showProp) (lookup "" ini)
-      , concat (map showSection ini)
-      ]
-    where
-      showSection ("", _) = ""
-      showSection (s, ps) = "[" <> show s <> "]\n" <> unlines (map showProp ps) <> "\n"
-      showProp (KeyPart key, value) = key <> " = " <> value
-      showProp (Comment c, comment) = c <> comment
+-- | Serialize an @Ini@ to a @String@.
+showIni :: Ini -> String
+showIni (Ini ini) = rtrim $ concat
+    [ maybe "" ((<> "\n") . unlines . map showProp) (lookup "" ini)
+    , concat (map showSection ini)
+    ]
+  where
+    showSection ("", _) = ""
+    showSection (s, ps) = "[" <> showSN s <> "]\n" <> unlines (map showProp ps) <> "\n"
+    showProp (KeyPart key, value) = key <> " = " <> value
+    showProp (Comment c, comment) = c <> comment
+
+instance Eq Ini where
+  Ini a == Ini b =
+    sort [(sn, sort p) | (sn, p) <- a] == sort [(sn, sort p) | (sn, p) <- b]
 
 -- | A key into an INI file.
 --
@@ -29,37 +36,40 @@ data Key = Key !SectionName !String
   deriving (Eq, Ord)
 instance IsString Key where
   fromString key =
-    case break (== '.') key of
+    case break (== '.') (trim key) of
       (k, "")  -> Key "" (valid k)
-      (s, _:k) -> Key (fromString s) (valid k)
+      (s, _:k) -> Key (fromString (rtrim s)) (valid k)
+
 instance Show Key where
   show (Key "" key)   = key
   show (Key sect key) = show sect <> "." <> key
 
 valid :: String -> String
-valid (';':_)              = error "keys must not start with ';'"
-valid ('#':_)              = error "keys must not start with '#'"
-valid key | '=' `elem` key = error "keys must not contain '='"
-          | otherwise      = key
+valid ('[':_)               = error "keys must not start with '['"
+valid (';':_)               = error "keys must not start with ';'"
+valid ('#':_)               = error "keys must not start with '#'"
+valid key | '=' `elem` key  = error "keys must not contain '='"
+          | '\n' `elem` key = error "keys must not contain newlines"
+          | all isSpace key = error $ "keys must not be empty/all whitespace"
+          | otherwise       = ltrim key
 
 data KeyOrComment = Comment !String | KeyPart !String
+  deriving (Show, Read)
 instance Ord KeyOrComment where
   compare (KeyPart a) (KeyPart b) = compare a b
   compare _           _           = LT
 instance Eq KeyOrComment where
   KeyPart a == KeyPart b = a == b
+  Comment a == Comment b = a == b
   _         == _         = False
-instance Show KeyOrComment where
-  show (Comment c) = c
-  show (KeyPart k) = k
 
 -- | The name of an INI section.
 --   Must not contain the character @']'@.
 newtype SectionName = SN String
-  deriving (Eq, Ord, IsString)
-instance Show SectionName where
-  show (SN h) | ']' `elem` h = error "section head must not contain ']'"
-              | otherwise    = h
+  deriving (Show, Read, Eq, Ord, IsString)
+showSN :: SectionName -> String
+showSN (SN h) | ']' `elem` h = error "section head must not contain ']'"
+                       | otherwise    = h
 
 type Section = (SectionName, [Property])
 type Property = (KeyOrComment, String)
