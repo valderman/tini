@@ -1,6 +1,10 @@
-{-# LANGUAGE TypeApplications, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE TypeApplications, FlexibleInstances, OverloadedStrings, CPP #-}
 module Main where
 import Control.Monad (forM_, unless)
+#if !MIN_VERSION_base(4, 13, 0)
+import Prelude hiding (fail)
+import Control.Monad.Fail (MonadFail, fail)
+#endif
 import Data.Char (isSpace)
 import Data.Function (on)
 import Data.List
@@ -83,7 +87,7 @@ commentsArePreserved ini comment (NonNegative ix) =
   where
     lns = filter (not . null) $ lines $ showIni ini
     comment_ix = if (null lns) then 0 else ix `rem` length lns
-    comment_line = ';' : filter (/= '\n') comment
+    comment_line = ';' : clean comment
     lns_with_comment = take comment_ix lns ++ comment_line : drop comment_ix lns
     Just ini_with_comment = parseIni (unlines lns_with_comment)
 

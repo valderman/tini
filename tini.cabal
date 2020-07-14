@@ -56,7 +56,7 @@ test-suite tini-test
   other-modules: Generators
   hs-source-dirs: test
   build-depends:
-    base >=4.10 && <5,
+    base >=4.9 && <5,
     QuickCheck >=2.14 && <3,
     tini
   default-language:
