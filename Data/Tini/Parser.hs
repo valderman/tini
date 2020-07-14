@@ -1,13 +1,19 @@
+{-# LANGUAGE CPP #-}
 module Data.Tini.Parser (parseIni) where
-import Prelude hiding (fail)
 import Control.Applicative (Alternative, (<|>))
 import Control.Monad ((<=<))
+#if !MIN_VERSION_base(4, 11, 0)
+import Data.Monoid
+#endif
+#if !MIN_VERSION_base(4, 13, 0)
+import Prelude hiding (fail)
 import Control.Monad.Fail (MonadFail, fail)
+#endif
 import Data.Char (isSpace)
 import Data.Function (on)
 import Data.List (intercalate, sortBy, groupBy)
 import Data.Tini.Types
-import Data.Tini.Utils (trim, ltrim, rtrim)
+import Data.Tini.Utils (trim, ltrim)
 
 -- | Parses an INI file from the given string.
 --
@@ -29,7 +35,7 @@ parseIni :: (Alternative m, MonadFail m) => String -> m Ini
 parseIni = fmap Ini . undupe "sections" <=< parseSections "" . filterWS . lines
   where filterWS = filter (not . null) . map ltrim
 
-undupe :: (Show k, Ord k, Eq k, MonadFail m) => String -> [(k, v)] -> m [(k, v)]
+undupe :: (Show k, Ord k, MonadFail m) => String -> [(k, v)] -> m [(k, v)]
 undupe what ss =
     case map (fst . head) $ filter duplicate (dupeGroups ss) of
       [] -> return ss

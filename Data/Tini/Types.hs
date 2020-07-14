@@ -1,7 +1,10 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings, CPP #-}
 module Data.Tini.Types where
 import Data.Char (isSpace)
 import Data.List
+#if !MIN_VERSION_base(4, 11, 0)
+import Data.Monoid
+#endif
 import Data.String
 import Data.Tini.Utils (ltrim, rtrim, trim)
 

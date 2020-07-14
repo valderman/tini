@@ -1,7 +1,7 @@
 cabal-version: >=1.10
 name:          tini
 version:       0.1.0.0
-synopsis:      Tiny INI file and generic configuration library with a minimal dependency footprint.
+synopsis:      Tiny INI file and configuration library with a minimal dependency footprint.
 description:
   This library provides tools for working with INI-like configuration files.
   Unlike most other INI libraries, it is not blazing fast or built with
@@ -23,6 +23,7 @@ author:        Anton Ekblad
 maintainer:    anton@ekblad.cc
 category:      Configuration
 build-type:    Simple
+tested-with:   GHC == 8.0.2, GHC == 8.4.1, GHC == 8.6.3, GHC == 8.8.1, GHC == 8.10.1
 
 extra-source-files:
   README.md
@@ -43,7 +44,7 @@ library
     Data.Tini.Types
     Data.Tini.Utils
   build-depends:
-    base >=4.10 && <5
+    base >=4.9 && <5
   default-language:
     Haskell2010
   ghc-options:
@@ -58,3 +59,5 @@ test-suite tini-test
     base >=4.10 && <5,
     QuickCheck >=2.14 && <3,
     tini
+  default-language:
+    Haskell2010
