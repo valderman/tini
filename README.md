@@ -1,6 +1,11 @@
 tini: a Tiny INI file and generic configuration library
 =======================================================
 
+[![Hackage](https://img.shields.io/hackage/v/tini.svg?style=flat)](http://hackage.haskell.org/package/tini)
+![MIT License](http://img.shields.io/badge/license-MIT-brightgreen.svg)
+[![Build Status](https://travis-ci.org/valderman/tini.svg?branch=master)](https://travis-ci.org/valderman/tini)
+[![Hackage Dependencies](https://img.shields.io/hackage-deps/v/tini.svg)](https://packdeps.haskellers.com/feed?needle=tini)
+
 What?
 -----
 This library provides tools for working with INI-like configuration files.
