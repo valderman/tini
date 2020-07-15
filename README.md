@@ -15,13 +15,13 @@ configuration files because you want something simple and lightweight.
 
 Tini provides the following features:
 
-* A simple interface to INI configuration: reading/writing an INI object
-  object to/from files and getting/setting/removing its values.
+* A simple interface to INI configuration: reading/writing an INI
+  config to/from files and getting/setting/removing its values.
 * Automatic de/serialization of lists, optional values and base types.
 * High-level generic configuration type library built on top, freeing you
   from ever having to think about how you interact with your INI files.
 * Certified bloat-free: only depends on `base`.
-* Small and auditable: <450 lines of code excluding documentation.
+* Small and auditable: <400 lines of code excluding documentation.
 
 
 Why?
