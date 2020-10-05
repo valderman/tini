@@ -7,11 +7,12 @@ import Control.Monad.Fail (MonadFail, fail)
 #endif
 import Data.Char (isSpace)
 import Data.Function (on)
-import Data.List
+import Data.List (deleteBy)
 import System.Exit (exitFailure)
 import Test.QuickCheck hiding (allProperties)
+import Test.QuickCheck.Monadic
 import Data.Tini
-import Generators
+import Generators ()
 
 instance MonadFail (Either String) where
   fail = Left
@@ -34,6 +35,7 @@ allProperties =
   , property modifyOverwritesElement
   , property modifyModifiesElement
   , property modifyLeavesOtherElementsIntact
+  , property readAndWriteAreInverses
   ]
 
 clean :: String -> String
@@ -123,3 +125,9 @@ modifyLeavesOtherElementsIntact ini (NonNegative ix) value =
             then "blah"
             else fst $ prop_list !! (ix `rem` length prop_list)
     ini_with_modified_key = modify (\_ -> Just value) key ini
+
+readAndWriteAreInverses :: Ini -> Property
+readAndWriteAreInverses ini = monadicIO $ do
+  run $ writeIniFile "tini-test.tmp" ini
+  ini' <- run $ readIniFile "tini-test.tmp"
+  assert (Just ini == ini')

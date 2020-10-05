@@ -3,11 +3,12 @@ module Generators where
 import Control.Monad (when)
 import Data.Char (isPrint, isSpace)
 import Data.List (foldl')
-import Data.Int
-import Data.String
-import Data.Word
+import Data.Int ( Int8, Int16, Int32, Int64 )
+import Data.String ( IsString(fromString) )
+import Data.Word ( Word8, Word16, Word32, Word64 )
 import Test.QuickCheck
-import Data.Tini
+    ( discard, frequency, listOf, listOf1, oneof, suchThat, Arbitrary(..), Gen )
+import Data.Tini ( empty, fromList, remove, set, toList, Ini, Key )
 
 genKeyName :: Gen String
 genKeyName = do

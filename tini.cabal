@@ -1,6 +1,6 @@
 cabal-version: >=1.10
 name:          tini
-version:       0.1.0.0
+version:       0.1.0.1
 synopsis:      Tiny INI file and configuration library with a minimal dependency footprint.
 description:
   This library provides tools for working with INI-like configuration files.

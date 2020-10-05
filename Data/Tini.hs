@@ -34,7 +34,7 @@ readIniFile file = do
 writeIniFile :: FilePath -> Ini -> IO ()
 writeIniFile path ini = do
     (tmpfile, h) <- openTempFile dir file
-    hPutStrLn h (show ini) >> hFlush h >> hClose h
+    hPutStrLn h (showIni ini) >> hFlush h >> hClose h
     rename tmpfile path
   where
     (dir, file) = splitPath path
